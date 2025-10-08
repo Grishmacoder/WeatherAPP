@@ -4,3 +4,23 @@ venv/
 .venv/
 .env
 __pycache__
+
+### react ###
+.DS_*
+*.log
+logs
+**/*.backup.*
+**/*.back.*
+
+node_modules
+bower_components
+/.pnp
+.pnp.js
+*.sublime*
+
+# testing
+/coverage
+
+# production
+/build
+

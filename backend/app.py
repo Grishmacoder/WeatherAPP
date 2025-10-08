@@ -44,6 +44,7 @@ def get_weather(city: str, country: str, db: Session = Depends(get_db)):
     if db_city:
         return {"message": "City already exists", "city": db_city.name, "lat": db_city.lat, "lon": db_city.lon}
 
+    #Save to db
     new_city = City(name=city, country=country, lat=lat, lon=lon)
     db.add(new_city)
     db.commit()
@@ -65,6 +66,7 @@ def get_weather(city: str, country: str, db: Session = Depends(get_db)):
     if weather_res.status_code != 200:
         return {"Error": "Failed to fetch weather data."}
     
+    #save to DB
     new_weather = WeatherDesc(
         city_id=db_city.id,
         temperature=weather_data["main"]["temp"],
