@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
 from database import Base
-from DateTime import datetime
+from datetime import datetime, date
 from sqlalchemy.orm import relationship
 
 
@@ -11,9 +11,9 @@ class City(Base):
     country=Column(String)
     lat=Column(Float)
     lon=Column(Float)
-    created_at=Column(DateTime, default=datetime.utnowm)
+    created_at=Column(DateTime,default=datetime.utcnow)
 
-    weather_desc = relationship("weatherDesc", back_populate="city")
+    weather_desc = relationship("WeatherDesc", back_populates="city")
 
 class WeatherDesc(Base):
     __tablename__ = "weather_desc"
@@ -23,6 +23,6 @@ class WeatherDesc(Base):
     humidity=Column(Float)
     wind_speed=Column(Integer)
     description=Column(String)
-    date=Column(DateTime, index=True)
+    date=Column(DateTime, default=datetime.utcnow, index=True)
 
-    city = relationship("city", back_populate="weatherDesc")
+    city = relationship("City", back_populates="weather_desc")
