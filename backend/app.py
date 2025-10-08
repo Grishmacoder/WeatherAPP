@@ -2,10 +2,12 @@ from fastapi import FastAPI, Depends
 import os, requests
 from dotenv import load_dotenv
 from datetime import datetime
+from fastapi.middleware.cors import CORSMiddleware
 
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 from models import City,WeatherDesc, Base
+
 
 
 #create table if not exist
@@ -16,6 +18,17 @@ load_dotenv()
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
 
 app = FastAPI()
+origins = [
+    "http://localhost:3000",   # React dev server
+    "http://127.0.0.1:3000",   # sometimes React uses this
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,            # list of allowed origins
+    allow_credentials=True,
+    allow_methods=["*"],              # allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],              # allow all headers
+)
 
 #get DB session
 def get_db():
