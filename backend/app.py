@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Query
 import os, requests
 from dotenv import load_dotenv
 from datetime import datetime
@@ -39,7 +39,7 @@ def get_db():
         db.close()
 
 @app.post("/city")
-def get_weather(city: str, country: str, db: Session = Depends(get_db)):
+def add_city(city: str, country: str, created_at: datetime | None = Query(default=None),db: Session = Depends(get_db)):
     """Fetch current weather for a given city and country"""
 
     #Get latitude and longitude
@@ -51,18 +51,19 @@ def get_weather(city: str, country: str, db: Session = Depends(get_db)):
         return {"error": "City not found. Check spelling or try another city."}
 
     lat, lon = geo_data[0]["lat"], geo_data[0]["lon"]
+    created_at = created_at or datetime.utcnow()
 
     #check if city alredy exsists
-    db_city = db.query(City).filter(City.name == city, City.country == country).first()
+    db_city = db.query(City).filter(City.name == city, City.country == country, City.created_at == created_at).first()
     if db_city:
-        return {"message": "City already exists", "city": db_city.name, "lat": db_city.lat, "lon": db_city.lon}
+        return {"message": "City was created alredy at this time", "city": db_city.name, "lat": db_city.lat, "lon": db_city.lon}
 
     #Save to db
-    new_city = City(name=city, country=country, lat=lat, lon=lon)
+    new_city = City(name=city, country=country, lat=lat, lon=lon, created_at=created_at)
     db.add(new_city)
     db.commit()
     db.refresh(new_city)
-    return {"message": "City added successfully", "city": city, "lat": lat, "lon": lon}
+    return {"message": "City added successfully", "city": city, "lat": lat, "lon": lon, "created_at": created_at.isoformat()}
     
 @app.get("/weather")
 def get_weather(city: str, country: str, db: Session = Depends(get_db)):
@@ -104,4 +105,119 @@ def get_weather(city: str, country: str, db: Session = Depends(get_db)):
         "wind_speed": weather_data["wind"]["speed"]
     }
 
+#get weather by timestamp
+@app.get("/weather/timestamp")
+def get_weather_by_time(city: str,country:str, date_time:datetime, db: Session = Depends(get_db)):
+
+    db_city = db.query(City).filter(City.name == city, City.country == country).first()
+    if not db_city:
+        return {"error":"city not found, please add it first."}
+    
+    weather_time_url = f"https://api.openweathermap.org/data/3.0/onecall/timemachine?lat={db_city.lat}&lon={db_city.lon}&dt={db_city.created_at}&appid={API_KEY}"
+    weather_time_res = requests.get(weather_time_url)
+    weather_time_data = weather_time_res.json()
+
+    if weather_time_res.status_code != 200:
+        return {"Error": "Failed to fetch weather data."}
+    
+    #save to DB
+    new_weather = WeatherDesc(
+        city_id=db_city.id,
+        temperature=weather_time_data["main"]["temp"],
+        humidity=weather_time_data["main"]["humidity"],
+        wind_speed=weather_time_data["wind"]["speed"],
+        description=weather_time_data["weather"][0]["description"],
+        date=weather_time_data["dt"]
+        )
+    
+    db.add(new_weather)
+    db.commit()
+    db.refresh(new_weather)
+
+    #return data
+    return{
+        "city":db_city.name,
+        "country": db_city.country,
+        "temperature": weather_time_data["main"]["temp"],
+        "feels_like": weather_time_data["main"]["feels_like"],
+        "humidity": weather_time_data["main"]["humidity"],
+        "description": weather_time_data["weather"][0]["description"],
+        "wind_speed": weather_time_data["wind"]["speed"]
+    }
+
+@app.get("/weather/date")
+def get_weather_by_date(city:str,country:str,date_time:datetime, db:Session = Depends(get_db)):
+    db_city = db.query(City).filter(City.name == city, City.country == country).first()
+    if not db_city:
+        return {"error":"city not found, please add it first."}
+    date = datetime.fromisoformat(db_city.created_at).date()
+    
+    weather_date_url = f"https://api.openweathermap.org/data/3.0/onecall/day_summary?lat={db_city.lat}&lon={db_city.lon}&date={date}&appid={API_KEY}"
+    weather_date_res = requests.get(weather_date_url)
+    weather_date_data = weather_date_res.json()
+
+    if weather_date_res.status_code != 200:
+        return {"Error": "Failed to fetch weather data."}
+    
+    #save to DB
+    new_weather = WeatherDesc(
+        city_id=db_city.id,
+        temperature=weather_date_data["main"]["temperature"]["min"],
+        humidity=weather_date_data["main"]["humidity"]["afternoon"],
+        wind_speed=weather_date_data["wind"]["speed"],
+        # description=weather_date_data["main"]["cloud_cover"],
+        date=weather_date_data["date"],
+        min_temp = weather_date_data["temperature"]["min"],
+        max_temp = weather_date_data["temperature"]["max"]
+        )
+    
+    db.add(new_weather)
+    db.commit()
+    db.refresh(new_weather)
+
+     #return data
+    return{
+        "city":db_city.name,
+        "country": db_city.country,
+        "temperature": weather_date_data["main"]["temp"],
+        "feels_like": weather_date_data["main"]["feels_like"],
+        "humidity": weather_date_data["main"]["humidity"],
+        # "description": weather_date_data["weather"][0]["description"],
+        "wind_speed": weather_date_data["wind"]["speed"],
+        "min_temp": weather_date_data["temperature"]["min"],
+        "max_temp": weather_date_data["temperature"]["max"]
+    }
+
+@app.get("/weather/overview")
+def get_weather_overview(city:str,country:str,date_time:datetime, db:Session = Depends(get_db)):
+
+    db_city = db.query(City).filter(City.name == city, City.country == country).first()
+    if not db_city:
+        return {"error":"city not found, please add it first."}
    
+    
+    weather_date_url = f"https://api.openweathermap.org/data/3.0/onecall/overview?lat={db_city.lat}&lon={db_city.lon}&appid={API_KEY}"
+    weather_date_res = requests.get(weather_date_url)
+    weather_date_data = weather_date_res.json()
+
+    if weather_date_res.status_code != 200:
+        return {"Error": "Failed to fetch weather data."}
+    
+    #save to DB
+    new_weather = WeatherDesc(
+        city_id=db_city.id,
+        date=weather_date_data["date"],
+        overview = weather_date_data["weather_overview"],
+        )
+    
+    db.add(new_weather)
+    db.commit()
+    db.refresh(new_weather)
+
+      #return data
+    return{
+        "date":weather_date_data["date"],
+        "city":db_city.name,
+        "country": db_city.country,
+        "forecast": weather_date_data["weather_overview"]
+    }
