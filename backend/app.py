@@ -1,15 +1,20 @@
 from fastapi import FastAPI, Depends, Query
+from fastapi.responses import JSONResponse
 import os, requests
 from dotenv import load_dotenv
 from datetime import datetime
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 from models import City,WeatherDesc, Base
 
-
-
+class cityCreate(BaseModel):
+    city:str
+    country: str
+    created_at: datetime | None = None
+# Base.metadata.drop_all(bind=engine)
 #create table if not exist
 Base.metadata.create_all(bind=engine)
 
@@ -24,7 +29,7 @@ origins = [
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,            # list of allowed origins
+    allow_origins=["*"],            # list of allowed origins
     allow_credentials=True,
     allow_methods=["*"],              # allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],              # allow all headers
@@ -39,11 +44,11 @@ def get_db():
         db.close()
 
 @app.post("/city")
-def add_city(city: str, country: str, created_at: datetime | None = Query(default=None),db: Session = Depends(get_db)):
+def add_city(data: cityCreate,db: Session = Depends(get_db)):
     """Fetch current weather for a given city and country"""
 
     #Get latitude and longitude
-    geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city},{country}&appid={API_KEY}"
+    geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={data.city},{data.country}&appid={API_KEY}"
     geo_resp = requests.get(geo_url)
     geo_data = geo_resp.json()
 
@@ -51,19 +56,19 @@ def add_city(city: str, country: str, created_at: datetime | None = Query(defaul
         return {"error": "City not found. Check spelling or try another city."}
 
     lat, lon = geo_data[0]["lat"], geo_data[0]["lon"]
-    created_at = created_at or datetime.utcnow()
+    created_at = data.created_at or datetime.utcnow()
 
-    #check if city alredy exsists
-    db_city = db.query(City).filter(City.name == city, City.country == country, City.created_at == created_at).first()
-    if db_city:
-        return {"message": "City was created alredy at this time", "city": db_city.name, "lat": db_city.lat, "lon": db_city.lon}
+    # #check if city alredy exsists
+    # db_city = db.query(City).filter(City.name == data.city, City.country == data.country, City.created_at == created_at).first()
+    # if db_city:
+    #     return {"message": "City was created alredy at this time", "city": db_city.name, "lat": db_city.lat, "lon": db_city.lon}
 
     #Save to db
-    new_city = City(name=city, country=country, lat=lat, lon=lon, created_at=created_at)
+    new_city = City(name=data.city, country=data.country, lat=lat, lon=lon, created_at=created_at)
     db.add(new_city)
     db.commit()
     db.refresh(new_city)
-    return {"message": "City added successfully", "city": city, "lat": lat, "lon": lon, "created_at": created_at.isoformat()}
+    return {"message": "City added successfully", "city": data.city, "lat": lat, "lon": lon, "created_at": created_at.isoformat()}
     
 @app.get("/weather")
 def get_weather(city: str, country: str, db: Session = Depends(get_db)):
@@ -95,15 +100,16 @@ def get_weather(city: str, country: str, db: Session = Depends(get_db)):
     db.refresh(new_weather)
     
     #return data
-    return{
+    return JSONResponse(content={
         "city":db_city.name,
         "country": db_city.country,
         "temperature": weather_data["main"]["temp"],
         "feels_like": weather_data["main"]["feels_like"],
         "humidity": weather_data["main"]["humidity"],
         "description": weather_data["weather"][0]["description"],
-        "wind_speed": weather_data["wind"]["speed"]
-    }
+        "wind_speed": weather_data["wind"]["speed"],
+        "date": new_weather.date.isoformat()
+    })
 
 #get weather by timestamp
 @app.get("/weather/timestamp")

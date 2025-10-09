@@ -24,8 +24,8 @@ class WeatherDesc(Base):
     wind_speed=Column(Integer)
     description=Column(String)
     date=Column(DateTime, default=datetime.utcnow, index=True)
-    min_temp = Column(Float),
-    max_temp = Column(Float),
+    min_temp = Column(Float)
+    max_temp = Column(Float)
     overview = Column(String)
 
     city = relationship("City", back_populates="weather_desc")

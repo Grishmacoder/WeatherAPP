@@ -15,6 +15,7 @@ function WeatherInfo({city, country}) {
                 `http://127.0.0.1:8000/weather?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`
             );
             setweather(res.data);
+            console.log(new Date(res.data.date));
             console.log("i'm called in weahter info", res.data);
         }catch(err){
             console.error("Error fetching weather: ",err);
