@@ -1,0 +1,28 @@
+.description__divider {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr;
+  padding: 0.6rem 1.6rem;
+  border: 3px solid currentColor;
+  border-radius: 1rem;
+}
+
+.description__text {
+  grid-row: 1/-1;
+  grid-column: 1/-1;
+  font-size: 1.3rem;
+}
+
+.weather-date {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0px;
+  padding-bottom: 0%;
+  color: #2c3e50;
+}
+.weather-location {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}

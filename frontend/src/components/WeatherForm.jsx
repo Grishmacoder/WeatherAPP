@@ -61,6 +61,7 @@ function WeatherForm({ setCityInfo, setcountry }) {
         />
       </label>
       <button type="submit" className="submit-btn">Get Weather</button>
+     
       <p className="instructions">
         For USA, enter &quot;city,two-letter state code,US&quot; eg
         &quot;Oskaloosa,IA,US&quot;. For every other country, enter

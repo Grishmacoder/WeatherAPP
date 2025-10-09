@@ -195,7 +195,7 @@ def get_weather_by_date(city:str,country:str,date_time:datetime, db:Session = De
     }
 
 @app.get("/weather/overview")
-def get_weather_overview(city:str,country:str,date_time:datetime, db:Session = Depends(get_db)):
+def get_weather_overview(city:str,country:str, db:Session = Depends(get_db)):
 
     db_city = db.query(City).filter(City.name == city, City.country == country).first()
     if not db_city:
@@ -227,3 +227,4 @@ def get_weather_overview(city:str,country:str,date_time:datetime, db:Session = D
         "country": db_city.country,
         "forecast": weather_date_data["weather_overview"]
     }
+
