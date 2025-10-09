@@ -1,70 +1,78 @@
-# Getting Started with Create React App
+# 🌤 Weather App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-stack Weather Application that fetches real-time weather data using the OpenWeather API.  
+The project consists of a **React.js frontend** and a **FastAPI backend**, with **PostgreSQL** used as the database.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
 
-### `npm start`
+## ⚙️ Prerequisites
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Before you begin, make sure you have the following installed:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- [Node.js](https://nodejs.org/) (v16 or above)
+- [Python](https://www.python.org/) (v3.8 or above)
+- [PostgreSQL](https://www.postgresql.org/download/)
+- [Git](https://git-scm.com/)
 
-### `npm test`
+## 🚀 Setup Instructions
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 1️⃣ Clone the Repository
 
-### `npm run build`
+```bash
+git clone https://github.com/Grishmacoder/WeatherAPP.git
+cd WeatherAPP
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 2️⃣ Backend Setup (FastAPI)
+📦 Install Dependencies
+```
+cd backend
+pip install -r requirements.txt
+```
+🗄️ Setup PostgreSQL Database
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Ensure PostgreSQL is running locally.
+Create a new database (e.g., weather_db).
+Update your database URL and openWeather API Key in .env:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+uvicorn app:app --reload
+```
+By default, the server runs at:
+👉 http://127.0.0.1:8000
 
-### `npm run eject`
+### 3️⃣ Frontend Setup (React)
+📦 Install Dependencies
+```
+cd ../frontend
+npm install 
+```
+▶️ Run the Frontend
+```
+npm start
+```
+The React app will start on:
+👉 http://localhost:3000
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+🔗 API Connection
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+The frontend communicates with the backend via REST API endpoints exposed by FastAPI and integrate OpenWeatherAPI.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Ensure both the frontend and backend are running simultaneously.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+🧠 Environment Variables
 
-## Learn More
+Create a .env file in your backend/ directory and include:
+```
+OPENWEATHER_API_KEY=your_api_key_here
+DATABASE_URL=postgresql://<username>:<password>@localhost:5432/weather_db
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+💡 Notes
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Make sure the backend URL is correctly set in your frontend API calls (e.g., http://127.0.0.1:8000).
 
-### Code Splitting
+If PostgreSQL is not running, the backend will fail to connect to the database.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+You can change ports or environment variables as needed.
