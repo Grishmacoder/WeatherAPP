@@ -4,34 +4,34 @@ import "./WeatherForm.css";
 import axios from "axios";
 
 
-function WeatherForm({ setCityInfo, setcountry }) {
+function WeatherForm({ setCityInfo, setcountry, setSelectedDate }) {
   const [location, setLocation] = useState("");
-  const [createdAt, setCreatedAt] = useState("");
+  const [datetime, setDateTime] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
    try {
       const parts = location.split(",").map((p) => p.trim());
       const city = parts[0];
       const country = parts[parts.length - 1];
 
       // if user provided datetime, convert to ISO string, else use current time
-      const created_at = createdAt
-        ? new Date(createdAt).toISOString()
-        : new Date().toISOString();
+      const selectedDate = datetime
+        ? datetime.split("T")[0]
+        : null;
 
       const response = await axios.post(
       "http://127.0.0.1:8000/city",{
         city,
         country,
-        created_at
+        datetime
         });
 
       setCityInfo(city);
       setcountry(country);
-      console.log(response.data);
+      setSelectedDate(selectedDate || null);
 
-      alert(`City ${response.data.city} added successfully!`);
     } catch (error) {
       console.error("Error adding city:", error);
       alert("Failed to add city");
@@ -51,13 +51,13 @@ function WeatherForm({ setCityInfo, setcountry }) {
         placeholder="City, state code, country code"
         className="form-input"
       />
-      <label style={{ marginLeft: "10px" }}>
+      <label className="form-label">
         Select Date & Time:
         <input
           type="datetime-local"
-          value={createdAt}
-          onChange={(e) => setCreatedAt(e.target.value)}
-          style={{ marginLeft: "5px" }}
+          value={datetime}
+          onChange={(e) => setDateTime(e.target.value)}
+          className="form-input"
         />
       </label>
       <button type="submit" className="submit-btn">Get Weather</button>

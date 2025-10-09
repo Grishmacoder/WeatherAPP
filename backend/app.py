@@ -119,7 +119,7 @@ def get_weather_by_time(city: str,country:str, date_time:datetime, db: Session =
     if not db_city:
         return {"error":"city not found, please add it first."}
     
-    weather_time_url = f"https://api.openweathermap.org/data/3.0/onecall/timemachine?lat={db_city.lat}&lon={db_city.lon}&dt={db_city.created_at}&appid={API_KEY}"
+    weather_time_url = f"https://api.openweathermap.org/data/3.0/onecall/timemachine?lat={db_city.lat}&lon={db_city.lon}&dt={db_city.created_at}&appid={API_KEY}&units=metric"
     weather_time_res = requests.get(weather_time_url)
     weather_time_data = weather_time_res.json()
 
@@ -152,14 +152,21 @@ def get_weather_by_time(city: str,country:str, date_time:datetime, db: Session =
     }
 
 @app.get("/weather/date")
-def get_weather_by_date(city:str,country:str,date_time:datetime, db:Session = Depends(get_db)):
+def get_weather_by_date(city:str,country:str,date:str ,db:Session = Depends(get_db)):
     db_city = db.query(City).filter(City.name == city, City.country == country).first()
     if not db_city:
         return {"error":"city not found, please add it first."}
-    date = datetime.fromisoformat(db_city.created_at).date()
+    # date = db_city.created_at.date()
     
-    weather_date_url = f"https://api.openweathermap.org/data/3.0/onecall/day_summary?lat={db_city.lat}&lon={db_city.lon}&date={date}&appid={API_KEY}"
-    weather_date_res = requests.get(weather_date_url)
+    url = "https://api.openweathermap.org/data/3.0/onecall/day_summary"
+    params = {
+        "lat": db_city.lat,
+        "lon": db_city.lon,
+        "date": date,      # Format: YYYY-MM-DD
+        "appid": API_KEY,
+        "units":"metric"
+    }
+    weather_date_res = requests.get(url, params=params)
     weather_date_data = weather_date_res.json()
 
     if weather_date_res.status_code != 200:
@@ -168,9 +175,9 @@ def get_weather_by_date(city:str,country:str,date_time:datetime, db:Session = De
     #save to DB
     new_weather = WeatherDesc(
         city_id=db_city.id,
-        temperature=weather_date_data["main"]["temperature"]["min"],
-        humidity=weather_date_data["main"]["humidity"]["afternoon"],
-        wind_speed=weather_date_data["wind"]["speed"],
+        temperature=weather_date_data["temperature"]["afternoon"],
+        humidity=weather_date_data["humidity"]["afternoon"],
+        wind_speed=weather_date_data["wind"]["max"]["speed"],
         # description=weather_date_data["main"]["cloud_cover"],
         date=weather_date_data["date"],
         min_temp = weather_date_data["temperature"]["min"],
@@ -185,11 +192,11 @@ def get_weather_by_date(city:str,country:str,date_time:datetime, db:Session = De
     return{
         "city":db_city.name,
         "country": db_city.country,
-        "temperature": weather_date_data["main"]["temp"],
-        "feels_like": weather_date_data["main"]["feels_like"],
-        "humidity": weather_date_data["main"]["humidity"],
+        "Date": weather_date_data["date"],
+        "temperature": weather_date_data["temperature"]["afternoon"],
+        "humidity": weather_date_data["humidity"]["afternoon"],
         # "description": weather_date_data["weather"][0]["description"],
-        "wind_speed": weather_date_data["wind"]["speed"],
+        "wind_speed": weather_date_data["wind"]["max"]["speed"],
         "min_temp": weather_date_data["temperature"]["min"],
         "max_temp": weather_date_data["temperature"]["max"]
     }

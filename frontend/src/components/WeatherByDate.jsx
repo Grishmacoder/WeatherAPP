@@ -3,27 +3,27 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import  "./WeatherInfo.css";
 
-function WeatherInfo({city, country}) {
+function WeatherByDate({city, country, date}) {
     const [weather, setweather] = useState(null);
 
     useEffect(() => {
-      if(!city || !country) return;
+      if(!city || !country || !date) return;
     
       const fetchWeather= async() => {
         try{
             const res = await axios.get(
-                `http://127.0.0.1:8000/weather?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`
+                `http://127.0.0.1:8000/weather/date?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&date=${encodeURIComponent(date)}`
             );
             setweather(res.data);
-            
+           
         }catch(err){
             console.error("Error fetching weather: ",err);
         }
       };
       fetchWeather();
-    }, [city, country]);
+    }, [city, country, date]);
 
-    if(!weather) return <p>Loading weather data...</p>;
+    if(!weather) return <p>Loading weather data for {date}...</p>;
     if(weather.error) return <p>{weather.error}</p>;
     
   return (
@@ -33,6 +33,9 @@ function WeatherInfo({city, country}) {
         <div className="weathercard__details">
           <span className="weathercard__location">
             {weather.city} ,{weather.country}
+          </span>
+            <span className="weathercard__location">
+            {date}
           </span>
         </div>
         <div className="weathercard__temp">
@@ -62,16 +65,13 @@ function WeatherInfo({city, country}) {
         </div>
         <div className="weathercard_description">
           <span className="weathercard__description-text">
-            {weather.description}
+            Min: {weather.min_temp}, Max: {weather.max_temp}
           </span>
         </div>
-        {/* <div className="weathercard__units-toggle">
-          <button onClick={() => setUnits("metric")}>°C</button>
-          <button onClick={() => setUnits("imperial")}>°F</button>
-        </div> */}
+       
       </div>
     </article>
   )
 }
 
-export default WeatherInfo
+export default WeatherByDate
