@@ -12,9 +12,9 @@ const [country, setcountry] = useState(null)
     // Function to add city to the backend
 const handleFormSubmit = async (location) => {
     try {
-      const parts = location.split(",").map((p) => p.trim());
-      const city = parts[0];
-      const country = parts[parts.length - 1];
+  const parts = location.split(",").map((p) => p.trim());
+  const city = parts[0];
+  const country = parts[parts.length - 1];
       console.log(city, country)
 
       const response = await axios.post(`http://127.0.0.1:8000/city?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`);
@@ -22,7 +22,7 @@ const handleFormSubmit = async (location) => {
       setCityInfo(city);
       setcountry(country);
       console.log(response);
-      alert(`City ${response.data.city} added successfully!`);
+      // alert(`City ${response.data.city} added successfully!`);
     } catch (error) {
       console.error("Error adding city:", error);
       alert("Failed to add city");
@@ -39,7 +39,7 @@ const handleFormSubmit = async (location) => {
         <main className="main-content">
           
             {cityInfo && country && <WeatherInfo city={cityInfo} country={country} />}
-          
+
         </main>
     </div>
     </>
